@@ -7,6 +7,7 @@ import com.promoit.finance.finance_manager.domain.dto.transaction.TransactionReq
 import com.promoit.finance.finance_manager.domain.dto.transaction.TransactionResponseDto;
 import com.promoit.finance.finance_manager.service.ExportService;
 import com.promoit.finance.finance_manager.service.FinanceService;
+import jakarta.validation.Valid;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -70,7 +71,7 @@ public class FinanceController {
     @PostMapping("/{walletId}/transaction")
     public TransactionResponseDto addTransaction(
             @PathVariable UUID walletId,
-            @RequestBody TransactionRequestDto request
+            @Valid @RequestBody TransactionRequestDto request
     ) {
         return financeService.addTransaction(walletId, request);
     }
