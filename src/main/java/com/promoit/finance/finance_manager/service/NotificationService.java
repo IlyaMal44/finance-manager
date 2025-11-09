@@ -23,7 +23,7 @@ public class NotificationService {
      * @param percentage процент использования бюджета (0-100)
      */
     public void notifyBudgetWarning(String username, String category, Double percentage) {
-        log.info("Внимание для {}: Категория '{}' использовала {}% бюджета", username, category, percentage);
+        log.info("Внимание для {}: Категория '{}' использовано {}% бюджета", username, category, percentage);
     }
 
     /**

@@ -6,6 +6,7 @@ import com.promoit.finance.finance_manager.domain.dto.transaction.TransactionTyp
 import com.promoit.finance.finance_manager.domain.dto.user.UserResponseDto;
 import com.promoit.finance.finance_manager.service.ExportService;
 import com.promoit.finance.finance_manager.service.FinanceService;
+import com.promoit.finance.finance_manager.service.NotificationService;
 import com.promoit.finance.finance_manager.service.UserService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
@@ -18,6 +19,7 @@ import java.util.UUID;
 @Component
 public class FinanceCLI implements CommandLineRunner {
 
+    private final NotificationService notificationService;
     private final ExportService exportService;
     private final FinanceService financeService;
     private final UserService userService;
@@ -26,10 +28,16 @@ public class FinanceCLI implements CommandLineRunner {
     private UUID currentWalletId;
     private String currentUsername;
 
-    public FinanceCLI(FinanceService financeService, UserService userService,ExportService exportService) {
+    public FinanceCLI(
+            FinanceService financeService,
+            UserService userService,
+            ExportService exportService,
+            NotificationService notificationService
+    ) {
         this.exportService = exportService;
         this.financeService = financeService;
         this.userService = userService;
+        this.notificationService = notificationService;
         this.scanner = new Scanner(System.in);
     }
 
@@ -66,6 +74,7 @@ public class FinanceCLI implements CommandLineRunner {
     }
 
     private void showMainMenu() {
+        System.out.println("-------------------------------------------");
         System.out.println("ГЛАВНОЕ МЕНЮ (" + currentUsername + "):");
         System.out.println("1 - Добавить доход");
         System.out.println("2 - Добавить расход");
@@ -224,12 +233,39 @@ public class FinanceCLI implements CommandLineRunner {
             System.out.println("Текущий баланс: " + stats.getBalance() + " ₽");
 
             System.out.println("Доходы по категориям:");
-            stats.getIncomeByCategory().forEach((category, amount) ->
-                    System.out.println("  " + category + ": " + amount + " ₽"));
+            if (stats.getIncomeByCategory().isEmpty()) {
+                System.out.println("Нет доходов");
+            } else {
+                stats.getIncomeByCategory().forEach((category, amount) ->
+                        System.out.println("  " + category + ": " + amount + " ₽"));
+            }
 
             System.out.println("Расходы по категориям:");
-            stats.getExpenseByCategory().forEach((category, amount) ->
-                    System.out.println("  " + category + ": " + amount + " ₽"));
+            if (stats.getExpenseByCategory().isEmpty()) {
+                System.out.println("Нет расходов");
+            } else {
+                stats.getExpenseByCategory().forEach((category, amount) ->
+                        System.out.println("  " + category + ": " + amount + " ₽"));
+            }
+
+            System.out.println("Статус бюджетов:");
+            if (stats.getBudgetStatus().isEmpty()) {
+                System.out.println("Бюджеты не установлены");
+            } else {
+                stats.getBudgetStatus().forEach((category, budget) -> {
+                    System.out.println("  " + category + ":");
+                    System.out.println("Лимит: " + budget.getLimitAmount() + " ₽");
+                    System.out.println("Потрачено: " + budget.getCurrentSpent() + " ₽");
+                    System.out.println("Осталось: " + budget.getRemaining() + " ₽");
+                    System.out.println("Использовано: " + budget.getUsagePercentage() + "%");
+
+                    if (budget.getExceeded()) {
+                        notificationService.notifyBudgetExceeded(currentUsername, category, budget.getCurrentSpent());
+                    } else if (budget.getUsagePercentage() >= 80) {
+                        notificationService.notifyBudgetWarning(currentUsername, category, budget.getUsagePercentage());
+                    }
+                });
+            }
 
         } catch (Exception e) {
             System.out.println("Ошибка: " + e.getMessage());
