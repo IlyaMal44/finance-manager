@@ -5,7 +5,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.promoit.finance.finance_manager.domain.dto.statistics.StatisticsResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -47,12 +46,23 @@ public class ExportService {
                     walletId, null, startDate.atStartOfDay(), endDate.atTime(23, 59, 59)
             );
 
+            log.info("Статистика получена успешно");
+
             Map<String, Object> exportData = new HashMap<>();
             exportData.put("metadata", createMetadata(startDate, endDate));
             exportData.put("statistics", stats);
 
             String filePath = exportDirectory + filename + ".json";
-            objectMapper.writerWithDefaultPrettyPrinter().writeValue(Paths.get(filePath).toFile(), exportData);
+            java.nio.file.Path path = Paths.get(filePath);
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(path.toFile(), exportData);
+
+            log.info("Файл создан.Ожидайте обновления файловой системы...");
+            System.out.println("Файл создан. Может потребоваться до 30 секунд для отображения в проводнике...");
+            // Принудительно обновляем директорию ( файл появляется не сразу из-за буфера, нужно обновление)
+            try {
+                java.nio.file.Files.getFileStore(path).getTotalSpace();
+            } catch (Exception ignored) {
+            }
 
             log.info("Отчет за период экспортирован в: {}", filePath);
 

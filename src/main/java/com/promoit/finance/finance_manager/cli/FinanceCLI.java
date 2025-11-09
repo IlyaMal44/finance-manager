@@ -4,11 +4,13 @@ import com.promoit.finance.finance_manager.domain.dto.statistics.StatisticsRespo
 import com.promoit.finance.finance_manager.domain.dto.transaction.TransactionRequestDto;
 import com.promoit.finance.finance_manager.domain.dto.transaction.TransactionType;
 import com.promoit.finance.finance_manager.domain.dto.user.UserResponseDto;
+import com.promoit.finance.finance_manager.service.ExportService;
 import com.promoit.finance.finance_manager.service.FinanceService;
 import com.promoit.finance.finance_manager.service.UserService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import java.time.LocalDate;
 import java.util.Scanner;
 import java.util.UUID;
 
@@ -16,6 +18,7 @@ import java.util.UUID;
 @Component
 public class FinanceCLI implements CommandLineRunner {
 
+    private final ExportService exportService;
     private final FinanceService financeService;
     private final UserService userService;
     private final Scanner scanner;
@@ -23,7 +26,8 @@ public class FinanceCLI implements CommandLineRunner {
     private UUID currentWalletId;
     private String currentUsername;
 
-    public FinanceCLI(FinanceService financeService, UserService userService) {
+    public FinanceCLI(FinanceService financeService, UserService userService,ExportService exportService) {
+        this.exportService = exportService;
         this.financeService = financeService;
         this.userService = userService;
         this.scanner = new Scanner(System.in);
@@ -68,6 +72,7 @@ public class FinanceCLI implements CommandLineRunner {
         System.out.println("3 - Установить бюджет");
         System.out.println("4 - Перевод");
         System.out.println("5 - Статистика");
+        System.out.println("6 - Экспорт статистики");
         System.out.println("0 - Выход");
         System.out.print("Выберите действие: ");
 
@@ -76,10 +81,11 @@ public class FinanceCLI implements CommandLineRunner {
         switch (choice) {
             case "1" -> addIncome();
             case "2" -> addExpense();
-            case "3"  -> setBudget();
-            case "4"  -> transfer();
-            case "5"  -> showStatistics();
-            case "0"  -> logout();
+            case "3" -> setBudget();
+            case "4" -> transfer();
+            case "5" -> showStatistics();
+            case "6" -> exportStatistics();
+            case "0" -> logout();
             default -> System.out.println("Неверный выбор");
         }
     }
@@ -238,4 +244,25 @@ public class FinanceCLI implements CommandLineRunner {
             System.out.println("Не удалось получить баланс: " + e.getMessage());
         }
     }
+
+    private void exportStatistics() {
+        System.out.println("ЭКСПОРТ СТАТИСТИКИ");
+        System.out.print("Начальная дата (гггг-мм-дд): ");
+        String startDate = scanner.nextLine();
+        System.out.print("Конечная дата (гггг-мм-дд): ");
+        String endDate = scanner.nextLine();
+        System.out.print("Имя файла (без .json): ");
+        String filename = scanner.nextLine();
+
+        try {
+            LocalDate start = LocalDate.parse(startDate);
+            LocalDate end = LocalDate.parse(endDate);
+
+            exportService.exportToJson(currentWalletId, start, end, filename);
+            System.out.println("Отчет экспортирован в файл: " + filename + ".json");
+        } catch (Exception e) {
+            System.out.println("Ошибка экспорта: " + e.getMessage());
+        }
+    }
+
 }

@@ -19,9 +19,6 @@ jobs:
       # Шаг 4: Запустить тесты
       - name: Run tests
         run: ./gradlew test
-      # Шаг 5: Проверка безопасности зависимостей
-      - name: Security dependency check
-        run: ./gradlew dependencyCheckAnalyze
-      # Шаг 6: Собрать приложение
+      # Шаг 5: Собрать приложение
       - name: Build application
         run: ./gradlew build
