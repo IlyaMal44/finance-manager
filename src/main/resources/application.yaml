@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: finance-manager
+  datasource:
+    url: jdbc:h2:mem:financedb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: sa
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  h2:
+    console:
+      enabled: true
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+      - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+
+
+server:
+  port: 8080
+
+logging:
+  level:
+    com.promoit.finance: DEBUG
