@@ -13,7 +13,7 @@
 ## Технологии
 - Java 17
 - Spring Boot 3.x
-- H2 Database (файловая для разработки)
+- H2 Database
 - JPA/Hibernate
 - Lombok
 - Spring Security (только PasswordEncoder)
