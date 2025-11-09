@@ -178,28 +178,29 @@ public class FinanceService {
         );
         List<TransactionEntity> transactions = wallet.getTransactions();
 
-        // Фильтрация по дате (если указаны даты)
+        // Фильтрация транзакций по дате для общей статистики и расчета сумм
         if (startDate != null && endDate != null) {
             transactions = transactions.stream()
                     .filter(t -> !t.getDate().isBefore(startDate) && !t.getDate().isAfter(endDate))
                     .collect(Collectors.toList());
         }
-        // Фильтрация по категориям (если указаны категории)
+        // Фильтрация транзакций по категориям для общей статистики и расчета сумм
         if (categories != null && !categories.isEmpty()) {
             transactions = transactions.stream()
                     .filter(t -> categories.contains(t.getCategory()))
                     .collect(Collectors.toList());
         }
-        // Расчет общей статистики
+        // Расчет общей статистики на основе отфильтрованных транзакций
         double totalIncome = calculateTotalIncome(transactions);
         double totalExpense = calculateTotalExpense(transactions);
         double balance = totalIncome - totalExpense;
-        // Статистика по категориям
+        // Статистика по категориям на основе отфильтрованных транзакций
         Map<String, Double> incomeByCategory = calculateIncomeByCategory(transactions);
         Map<String, Double> expenseByCategory = calculateExpenseByCategory(transactions);
-
-
-        Map<String, StatisticsResponseDto.BudgetStatus> budgetStatus = calculateBudgetStatus(wallet, expenseByCategory, categories);
+        // Расчет статуса бюджетов с дополнительной фильтрацией для отображения
+        Map<String, StatisticsResponseDto.BudgetStatus> budgetStatus = calculateBudgetStatus(
+                wallet, expenseByCategory, categories,startDate,endDate
+        );
 
         return StatisticsMapper.toDto(totalIncome,totalExpense,balance,incomeByCategory,expenseByCategory,budgetStatus);
     }
@@ -249,35 +250,49 @@ public class FinanceService {
     }
 
     /**
-     * Рассчитывает статус бюджетов на основе фактических расходов за период
+     * Рассчитывает статус бюджетов на основе фактических расходов за период.
+     * Фильтрует отображаемые бюджеты по следующим правилам:
+     * - Если указаны категории: показываем только бюджеты запрошенных категорий
+     * - Если указан период: показываем только бюджеты, у которых были транзакции в указанный период
+     * - Расчёт потраченной суммы (currentSpent) всегда учитывает применённые фильтры (даты/категории)
+     *
      * @param wallet кошелек для анализа бюджетов
-     * @param expenseByCategory
-     * @return мапа статусов бюджетов для категорий, присутствующих в отфильтрованных транзакциях
+     * @param expenseByCategory мапа расходов по категориям (уже отфильтрованная по периоду и категориям)
+     * @param categories список категорий для фильтрации бюджетов (null = все категории)
+     * @param startDate начальная дата периода для фильтрации бюджетов (null = без фильтра по дате)
+     * @param endDate конечная дата периода для фильтрации бюджетов (null = без фильтра по дате)
+     * @return Map<String, StatisticsResponseDto.BudgetStatus> статусов бюджетов, отфильтрованная по указанным категориям и периоду
      */
     private Map<String, StatisticsResponseDto.BudgetStatus> calculateBudgetStatus(
-            WalletEntity wallet, Map<String, Double> expenseByCategory, List<String> categories
+            WalletEntity wallet,
+            Map<String, Double> expenseByCategory,
+            List<String> categories,
+            LocalDateTime startDate,
+            LocalDateTime endDate
     ) {
         Map<String, StatisticsResponseDto.BudgetStatus> budgetStatus = new HashMap<>();
 
-
         for (BudgetEntity budget : wallet.getBudgets()) {
-
             String category = budget.getCategory();
-
-            // фильтруем бюджеты по запрошенным категориям
+            // фильтруем БЮДЖЕТЫ по запрошенным категориям
             if (categories != null && !categories.isEmpty() && !categories.contains(category)) {
                 continue;
             }
-
-            // TODO  - СДЕЛАТЬ ФИКС ФИЛЬТРА
-
-
+            // фильтруем БЮДЖЕТЫ по запрошенным периодам
+            if (startDate != null && endDate != null) {
+                boolean hasTransactionsInPeriod = wallet.getTransactions().stream()
+                        .filter(t -> t.getType() == TransactionType.EXPENSE)
+                        .filter(t -> category.equals(t.getCategory()))
+                        .anyMatch(t -> !t.getDate().isBefore(startDate) && !t.getDate().isAfter(endDate));
+                if (!hasTransactionsInPeriod) {
+                    continue;
+                }
+            }
             double spent = expenseByCategory.getOrDefault(category, 0.0);
             double remaining = budget.getLimitAmount() - spent;
             double usagePercentage = budget.getLimitAmount() > 0 ? (spent / budget.getLimitAmount()) * 100 : 0;
             boolean exceeded = remaining < 0;
 
-            // Создаем DTO со статусом бюджета
             StatisticsResponseDto.BudgetStatus status = StatisticsResponseDto.BudgetStatus.builder()
                     .limitAmount(budget.getLimitAmount())
                     .currentSpent(spent)
