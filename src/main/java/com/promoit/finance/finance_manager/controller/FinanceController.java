@@ -13,7 +13,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -36,7 +35,6 @@ public class FinanceController {
 
     /**
      * Устанавливает или обновляет бюджетное ограничение для ОДНОЙ категории расходов.
-     *
      * @param walletId UUID идентификатор кошелька
      * @param request  DTO с данными бюджета
      * @return BudgetResponseDto установленный бюджет с детальной информацией
@@ -51,7 +49,6 @@ public class FinanceController {
 
     /**
      * Устанавливает или обновляет бюджетные ограничения для НЕСКОЛЬКИХ категорий расходов.
-     *
      * @param walletId UUID идентификатор кошелька
      * @param requests список DTO с данными бюджетов
      * @return список BudgetResponseDto с установленными бюджетами
@@ -66,7 +63,6 @@ public class FinanceController {
 
     /**
      * Создает новую финансовую транзакцию для указанного кошелька.
-     *
      * @param walletId UUID идентификатор кошелька
      * @param request  DTO с данными транзакции
      * @return TransactionResponseDto созданная транзакция с детальной информацией
@@ -81,7 +77,6 @@ public class FinanceController {
 
     /**
      * Получает детальную финансовую статистику по кошельку. Поддерживает фильтрацию по периоду и категориям.
-     *
      * @param walletId   идентификатор кошелька
      * @param categories список категорий для фильтрации (опционально)
      * @param startDate  начальная дата периода в формате ISO (опционально)
@@ -115,8 +110,8 @@ public class FinanceController {
             @PathVariable UUID walletId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-            @RequestParam(defaultValue = "report") String filename) {
-
+            @RequestParam(defaultValue = "report") String filename
+    ) {
         try {
             exportService.exportToJson(walletId, startDate, endDate, filename);
             Path filePath = Paths.get("exports/" + filename + ".json");
@@ -130,9 +125,9 @@ public class FinanceController {
             return ResponseEntity.badRequest().build();
         }
     }
+
     /**
      * Создает две связанные транзакции: списание у отправителя и зачисление получателю
-     *
      * @param fromUser    логин пользователя-отправителя (обязательный)
      * @param toUser      логин пользователя-получателя (обязательный)
      * @param amount      сумма перевода, должна быть положительной (обязательный)
