@@ -7,10 +7,12 @@ import com.promoit.finance.finance_manager.domain.dto.user.UserResponseDto;
 import com.promoit.finance.finance_manager.service.FinanceService;
 import com.promoit.finance.finance_manager.service.UserService;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import java.util.Scanner;
 import java.util.UUID;
 
+@Profile("!test")
 @Component
 public class FinanceCLI implements CommandLineRunner {
 
