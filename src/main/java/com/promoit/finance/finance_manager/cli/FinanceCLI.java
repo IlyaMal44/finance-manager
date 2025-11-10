@@ -78,7 +78,7 @@ public class FinanceCLI implements CommandLineRunner {
         System.out.println("ГЛАВНОЕ МЕНЮ (" + currentUsername + "):");
         System.out.println("1 - Добавить доход");
         System.out.println("2 - Добавить расход");
-        System.out.println("3 - Установить бюджет");
+        System.out.println("3 - Установить/обновить бюджет");
         System.out.println("4 - Перевод");
         System.out.println("5 - Статистика");
         System.out.println("6 - Экспорт статистики");
