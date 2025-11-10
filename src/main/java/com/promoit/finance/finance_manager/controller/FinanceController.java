@@ -63,6 +63,19 @@ public class FinanceController {
     }
 
     /**
+     * Удаляет бюджетное ограничение для категории расходов.
+     * @param walletId UUID идентификатор кошелька
+     * @param category категория расходов для удаления бюджета
+     */
+    @DeleteMapping("/{walletId}/budget")
+    public void deleteBudget(
+            @PathVariable UUID walletId,
+            @RequestParam String category
+    ) {
+        financeService.deleteBudget(walletId, category);
+    }
+
+    /**
      * Создает новую финансовую транзакцию для указанного кошелька.
      * @param walletId UUID идентификатор кошелька
      * @param request  DTO с данными транзакции

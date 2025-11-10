@@ -79,9 +79,10 @@ public class FinanceCLI implements CommandLineRunner {
         System.out.println("1 - Добавить доход");
         System.out.println("2 - Добавить расход");
         System.out.println("3 - Установить/обновить бюджет");
-        System.out.println("4 - Перевод");
-        System.out.println("5 - Статистика");
-        System.out.println("6 - Экспорт статистики");
+        System.out.println("4 - Удалить бюджет");
+        System.out.println("5 - Перевод");
+        System.out.println("6 - Статистика");
+        System.out.println("7 - Экспорт статистики");
         System.out.println("0 - Выход");
         System.out.print("Выберите действие: ");
 
@@ -91,9 +92,10 @@ public class FinanceCLI implements CommandLineRunner {
             case "1" -> addIncome();
             case "2" -> addExpense();
             case "3" -> setBudget();
-            case "4" -> transfer();
-            case "5" -> showStatistics();
-            case "6" -> exportStatistics();
+            case "4" -> deleteBudget();
+            case "5" -> transfer();
+            case "6" -> showStatistics();
+            case "7" -> exportStatistics();
             case "0" -> logout();
             default -> System.out.println("Неверный выбор");
         }
@@ -138,6 +140,19 @@ public class FinanceCLI implements CommandLineRunner {
         currentUsername = null;
         currentWalletId = null;
         System.out.println("Выход выполнен");
+    }
+
+    private void deleteBudget() {
+        System.out.println("УДАЛЕНИЕ БЮДЖЕТА");
+        System.out.print("Категория: ");
+        String category = scanner.nextLine();
+
+        try {
+            financeService.deleteBudget(currentWalletId, category);
+            System.out.println("Бюджет для категории '" + category + "' успешно удален!");
+        } catch (Exception e) {
+            System.out.println("Ошибка: " + e.getMessage());
+        }
     }
 
     private void addIncome() {

@@ -22,6 +22,7 @@ import com.promoit.finance.finance_manager.domain.repository.BudgetRepository;
 import com.promoit.finance.finance_manager.domain.repository.TransactionRepository;
 import com.promoit.finance.finance_manager.domain.repository.UserRepository;
 import com.promoit.finance.finance_manager.domain.repository.WalletRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@Slf4j
 public class FinanceService {
     private final BudgetRepository budgetRepository;
     private final WalletRepository walletRepository;
@@ -160,6 +162,25 @@ public class FinanceService {
 
         budget.setLimitAmount(limitAmount);
         return budgetRepository.save(budget);
+    }
+
+    /**
+     * Удаляет бюджетное ограничение для указанной категории расходов.
+     * @param walletId уникальный идентификатор кошелька
+     * @param category категория расходов для удаления бюджета
+     */
+    public void deleteBudget(UUID walletId, String category) {
+        WalletEntity wallet = walletRepository.findById(walletId).orElseThrow(
+                () -> new WalletNotFoundException("Кошелек с ID '" + walletId + "' не найден")
+        );
+
+        BudgetEntity budget = budgetRepository.findByWalletAndCategory(wallet, category)
+                .orElseThrow(() -> new RuntimeException(
+                        "Бюджет для категории '" + category + "' не найден"
+                ));
+
+        budgetRepository.delete(budget);
+        log.info("Бюджет для категории '{}' удален из кошелька {}", category, walletId);
     }
 
     /**
