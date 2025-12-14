@@ -16,7 +16,7 @@ import java.util.Scanner;
 import java.util.UUID;
 
 @Profile("!test")
-@Component
+//@Component
 public class FinanceCLI implements CommandLineRunner {
 
     private final NotificationService notificationService;

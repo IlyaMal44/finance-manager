@@ -1,24 +1,104 @@
-name: Build and Test
-on: [push, pull_request]
-jobs:
-  test:
-    runs-on: ubuntu-latest
+name: CI/CD Pipeline - Build, Test and Deploy    # Общее имя workflow, которое будет отображаться в GitHub Actions
+on: [push, pull_request]                         # Триггеры: запускается при: push в любую ветку и создании/обновлении pull request
+
+jobs:  # Раздел, содержащий все задачи pipeline
+
+  # Джоба 1: Сборка и тестирование на нескольких ОС
+  test-multi-platform:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        java-version: [17]
+
+    runs-on: ${{ matrix.os }}  # Динамический запуск на разных ОС: ubuntu, windows, macos (Матрица создаст 3 параллельных запуска)
+
     steps:
       # Шаг 1: Получить код из репозитория
       - name: Checkout code
         uses: actions/checkout@v4
-      # Шаг 2: Установить Java 17
-      - name: Set up JDK 17
+
+      # Шаг 2: Установить Java 17 для разных ОС
+      - name: Set up JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: ${{ matrix.java-version }}
           distribution: 'temurin'
-      # Шаг 3: Дать права на выполнение gradlew
+
+      # Шаг 3: Дать права на gradlew (только не на Windows)
       - name: Make Gradle wrapper executable
+        if: runner.os != 'Windows'
         run: chmod +x ./gradlew
+
       # Шаг 4: Запустить тесты
-      - name: Run tests
+      - name: Run tests on ${{ matrix.os }}
         run: ./gradlew test
+
       # Шаг 5: Собрать приложение
-      - name: Build application
+      - name: Build application on ${{ matrix.os }}
         run: ./gradlew build
+
+      # Шаг 6: Сохранить артефакты JAR только для ubuntu
+      - name: Upload JAR for deployment
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: finance-manager-jar
+          path: "build/libs/*.jar"
+
+  # Джоба 2: Деплой приложения на удаленный сервер
+  deploy:
+    needs: test-multi-platform   # Зависимость: эта job выполняется только после УСПЕШНОГО завершения job 'test-multi-platform'
+    runs-on: ubuntu-latest       # Запуск на Ubuntu, так как деплой обычно выполняется с Linux-систем
+    if: github.ref == 'refs/heads/main'  # Деплой будет запущен только для ветки main
+
+    steps:
+       # Шаг 1: Скачивание сохраненного артефакта
+      - name: Download JAR artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: finance-manager-jar
+
+      # Шаг 2: Копирование JAR файла на удаленный сервер через SCP
+      - name: Copy JAR to VPS via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}            # Адрес удаленного сервера (хранится в Secrets репозитория)
+          username: ${{ secrets.DEPLOY_USER }}        # Имя пользователя для SSH подключения (хранится в Secrets)
+          key: ${{ secrets.DEPLOY_KEY }}              # Приватный SSH ключ (хранится в Secrets)
+          source: "build/libs/*.jar"                  # Локальный путь к файлам для копирования
+          target: "/opt/finance-manager/"             # Удаленный путь на сервере
+          strip_components: 2                         # Удаляет первые 2 компонента пути (build/libs/)
+
+      # Шаг 3: Развертывание приложения на удаленном сервере через SSH
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        # Действие для выполнения команд на удаленном сервере через SSH
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          # Многострочный скрипт для выполнения на удаленном сервере
+          script: |
+            # 1. Останавливаем предыдущее приложение ( если предыдущее приложение отсутствует, возвращаем true)
+            echo "Stopping previous application"
+            pkill -f "java.*jar" || true
+            sleep 3
+            
+            # 2. Переходим в директорию с приложением
+            echo "Starting Finance Manager"
+            cd /opt/finance-manager
+            
+            # 3. Находим самый свежий JAR файл
+            #    ls -t: сортирует файлы по времени изменения (новейший первый)
+            #    *.jar: выбирает только JAR файлы
+            #    grep -v "plain"   ИСКЛЮЧАЕТ файлы содержащие "plain" в имени (Spring Boot создаёт *-plain.jar без зависимостей)               
+            #    head -1: берёт первый (самый свежий) файл
+            LATEST_JAR=$(ls -t *.jar | grep -v "plain" | head -1)
+            
+            # 4. Запускаем приложение в фоновом режиме
+            #    nohup: продолжает работать после закрытия SSH сессии
+            #    java -jar "$LATEST_JAR": запускает найденный JAR
+            #    --server.port=8080: указывает порт (Spring Boot)
+            #    > app.log 2>&1: перенаправляем stdout и stderr в файл app.log
+            #    &: запускает в фоновом режиме
+            nohup java -jar "$LATEST_JAR" --server.port=8080 > app.log 2>&1 &
