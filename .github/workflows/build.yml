@@ -65,9 +65,8 @@ jobs:  # Раздел, содержащий все задачи pipeline
           host: ${{ secrets.DEPLOY_HOST }}            # Адрес удаленного сервера (хранится в Secrets репозитория)
           username: ${{ secrets.DEPLOY_USER }}        # Имя пользователя для SSH подключения (хранится в Secrets)
           key: ${{ secrets.DEPLOY_KEY }}              # Приватный SSH ключ (хранится в Secrets)
-          source: "build/libs/*.jar"                  # Локальный путь к файлам для копирования
+          source: "*.jar"                             # Локальный путь к файлам для копирования
           target: "/opt/finance-manager/"             # Удаленный путь на сервере
-          strip_components: 2                         # Удаляет первые 2 компонента пути (build/libs/)
 
       # Шаг 3: Развертывание приложения на удаленном сервере через SSH
       - name: Deploy via SSH
