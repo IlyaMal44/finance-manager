@@ -58,7 +58,7 @@ jobs:  # Раздел, содержащий все задачи pipeline
         with:
           name: finance-manager-jar
 
-      # Шаг 2: Копирование JAR файла на удаленный сервер через SCP
+       # Шаг 2: Копирование JAR файла на удаленный сервер через SCP
       - name: Copy JAR to VPS via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
