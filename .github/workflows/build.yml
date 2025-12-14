@@ -99,5 +99,6 @@ jobs:  # Раздел, содержащий все задачи pipeline
             #    java -jar "$LATEST_JAR": запускает найденный JAR
             #    --server.port=8080: указывает порт (Spring Boot)
             #    > app.log 2>&1: перенаправляем stdout и stderr в файл app.log
+            #    </dev/null реализуем независимый процесс от SSH сессии
             #    &: запускает в фоновом режиме
-            nohup java -jar "$LATEST_JAR" --server.port=8080 > app.log 2>&1 &
+            nohup java -jar "$LATEST_JAR" --server.port=8080 > app.log 2>&1 </dev/null &
