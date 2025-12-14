@@ -83,7 +83,6 @@ jobs:  # Раздел, содержащий все задачи pipeline
             # 1. Останавливаем предыдущее приложение ( если предыдущее приложение отсутствует, возвращаем true)
             echo "Stopping previous application"
             pkill -f "java.*jar" || true
-            sleep 3
             
             # 2. Переходим в директорию с приложением
             echo "Starting Finance Manager"
