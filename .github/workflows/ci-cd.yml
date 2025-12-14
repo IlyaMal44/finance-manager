@@ -70,7 +70,7 @@ jobs:  # Раздел, содержащий все задачи pipeline
 
        # Шаг 3: Развертывание приложения на удаленном сервере через SSH
       - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.2.4
         # Действие для выполнения команд на удаленном сервере через SSH
         with:
           host: ${{ secrets.DEPLOY_HOST }}
