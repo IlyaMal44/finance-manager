@@ -76,7 +76,6 @@ jobs:  # Раздел, содержащий все задачи pipeline
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
-          sync: false     # SSH не будет ждать завершения фонового процесса
 
           # Многострочный скрипт для выполнения на удаленном сервере
           script: |
