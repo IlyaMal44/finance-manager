@@ -79,9 +79,19 @@ jobs:  # Раздел, содержащий все задачи pipeline
 
           # Многострочный скрипт для выполнения на удаленном сервере
           script: |
-            # 1. Останавливаем предыдущее приложение ( если предыдущее приложение отсутствует, возвращаем true)
+            
+            # 1. Безопасная остановка предыдущего приложения по PID файлу
             echo "Stopping previous application"
-            pkill -f "java.*jar" || true
+            if [ -f "/opt/finance-manager/app.pid" ]; then
+              PID=$(cat /opt/finance-manager/app.pid)
+              echo "Found PID: $PID"
+              kill $PID 2>/dev/null || true
+              sleep 2
+              rm -f /opt/finance-manager/app.pid
+              echo "Previous application stopped"
+            else
+              echo "No PID file found (first deployment or manual cleanup)"
+            fi
             
             # 2. Переходим в директорию с приложением
             echo "Starting Finance Manager"
@@ -102,3 +112,6 @@ jobs:  # Раздел, содержащий все задачи pipeline
             #    </dev/null реализуем независимый процесс от SSH сессии
             #    &: запускает в фоновом режиме
             nohup java -jar "$LATEST_JAR" --server.port=8080 > app.log 2>&1 </dev/null &
+            
+            # 5. Создаем файл app.pid 
+            echo $! > app.pid
