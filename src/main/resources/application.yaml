@@ -25,6 +25,6 @@ server:
 
 logging:
   level:
-    com.promoit.finance: DEBUG
-    org.hibernate: WARN
-    org.hibernate.SQL: false
+    com.promoit.finance: INFO
+    org.hibernate: INFO
+    org.hibernate.SQL: DEBUG
