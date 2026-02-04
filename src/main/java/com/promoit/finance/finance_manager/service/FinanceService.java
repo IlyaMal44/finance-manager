@@ -227,6 +227,41 @@ public class FinanceService {
     }
 
     /**
+     * Получает список транзакций по кошельку.
+     * @param walletId   идентификатор кошелька
+     * @param categories список категорий для фильтрации (опционально)
+     * @param startDate  начальная дата периода в формате ISO (опционально)
+     * @param endDate    конечная дата периода в формате ISO (опционально)
+     * @return List<TransactionResponseDto> список транзакций по кошельку
+     */
+    public List<TransactionResponseDto> getTransactions(
+            UUID walletId, List<String> categories, LocalDateTime startDate, LocalDateTime endDate
+    ) {
+        WalletEntity wallet = walletRepository.findById(walletId).orElseThrow(
+                () -> new WalletNotFoundException("Кошелек с ID '" + walletId + "' не найден")
+        );
+        List<TransactionEntity> transactions = wallet.getTransactions();
+
+        // фильтр по дате
+        if (startDate != null && endDate != null) {
+            transactions = transactions.stream()
+                    .filter(t -> !t.getDate().isBefore(startDate) && !t.getDate().isAfter(endDate))
+                    .collect(Collectors.toList());
+        }
+        // фильтр по категориям
+        if (categories != null && !categories.isEmpty()) {
+            transactions = transactions.stream()
+                    .filter(t -> categories.contains(t.getCategory()))
+                    .collect(Collectors.toList());
+        }
+        // сортировка по дате (сначала новые)
+        transactions.sort(Comparator.comparing(TransactionEntity::getDate).reversed());
+        return transactions.stream()
+                .map(TransactionMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Вычисляет общую сумму доходов из списка транзакций
      */
     private double calculateTotalIncome(List<TransactionEntity> transactions) {

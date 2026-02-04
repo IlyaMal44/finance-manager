@@ -108,6 +108,24 @@ public class FinanceController {
     }
 
     /**
+     * Получает список транзакций по кошельку.
+     * @param walletId   идентификатор кошелька
+     * @param categories список категорий для фильтрации (опционально)
+     * @param startDate  начальная дата периода в формате ISO (опционально)
+     * @param endDate    конечная дата периода в формате ISO (опционально)
+     * @return List<TransactionResponseDto> список транзакций по кошельку
+     */
+    @GetMapping("/{walletId}/transactions")
+    public List<TransactionResponseDto> getTransactions(
+            @PathVariable UUID walletId,
+            @RequestParam(required = false) List<String> categories,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate
+    ) {
+        return financeService.getTransactions(walletId, categories, startDate, endDate);
+    }
+
+    /**
      * Создает детальный финансовый отчет в JSON формате:
      *   - Автоматически скачивает файл после генерации
      *   - Поддерживает фильтрацию по произвольному периоду
