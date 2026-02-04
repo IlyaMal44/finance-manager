@@ -14,6 +14,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -36,6 +37,7 @@ public class FinanceController {
 
     /**
      * Устанавливает или обновляет бюджетное ограничение для ОДНОЙ категории расходов.
+     *
      * @param walletId UUID идентификатор кошелька
      * @param request  DTO с данными бюджета
      * @return BudgetResponseDto установленный бюджет с детальной информацией
@@ -50,6 +52,7 @@ public class FinanceController {
 
     /**
      * Устанавливает или обновляет бюджетные ограничения для НЕСКОЛЬКИХ категорий расходов.
+     *
      * @param walletId UUID идентификатор кошелька
      * @param requests список DTO с данными бюджетов
      * @return список BudgetResponseDto с установленными бюджетами
@@ -64,6 +67,7 @@ public class FinanceController {
 
     /**
      * Удаляет бюджетное ограничение для категории расходов.
+     *
      * @param walletId UUID идентификатор кошелька
      * @param category категория расходов для удаления бюджета
      */
@@ -77,6 +81,7 @@ public class FinanceController {
 
     /**
      * Создает новую финансовую транзакцию для указанного кошелька.
+     *
      * @param walletId UUID идентификатор кошелька
      * @param request  DTO с данными транзакции
      * @return TransactionResponseDto созданная транзакция с детальной информацией
@@ -90,25 +95,35 @@ public class FinanceController {
     }
 
     /**
-     * Получает детальную финансовую статистику по кошельку. Поддерживает фильтрацию по периоду и категориям.
-     * @param walletId   идентификатор кошелька
-     * @param categories список категорий для фильтрации (опционально)
-     * @param startDate  начальная дата периода в формате ISO (опционально)
-     * @param endDate    конечная дата периода в формате ISO (опционально)
-     * @return StatisticsResponseDto с полной финансовой статистикой
+     * Удаляет транзакцию для указанного кошелька.
+     *
+     * @param walletId      UUID идентификатор кошелька
+     * @param transactionId UUID идентификатор транзакции
      */
-    @GetMapping("/{walletId}/statistics")
-    public StatisticsResponseDto getStatistics(
-            @PathVariable UUID walletId,
-            @RequestParam(required = false) List<String> categories,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate
-    ) {
-        return financeService.getStatistics(walletId, categories, startDate, endDate);
+    @DeleteMapping("/{walletId}/transactions/{transactionId}")
+    public void deleteTransactions(@PathVariable UUID walletId, @PathVariable UUID transactionId) {
+        financeService.deleteTransaction(walletId, transactionId);
     }
 
     /**
+     * Обновляет транзакцию для указанного кошелька.
+     *
+     * @param walletId      UUID идентификатор кошелька
+     * @param transactionId UUID идентификатор транзакции
+     */
+    @PutMapping("/{walletId}/transactions/{transactionId}")
+    public void updateTransactions(
+            @PathVariable UUID walletId,
+            @PathVariable UUID transactionId,
+            @Valid @RequestBody TransactionRequestDto request
+    ) {
+        financeService.updateTransaction(walletId, transactionId, request);
+    }
+
+
+    /**
      * Получает список транзакций по кошельку.
+     *
      * @param walletId   идентификатор кошелька
      * @param categories список категорий для фильтрации (опционально)
      * @param startDate  начальная дата периода в формате ISO (опционально)
@@ -126,15 +141,34 @@ public class FinanceController {
     }
 
     /**
-     * Создает детальный финансовый отчет в JSON формате:
-     *   - Автоматически скачивает файл после генерации
-     *   - Поддерживает фильтрацию по произвольному периоду
-     *   - Форматирует данные для удобного анализа
+     * Получает детальную финансовую статистику по кошельку. Поддерживает фильтрацию по периоду и категориям.
      *
-     * @param walletId UUID кошелька для анализа
+     * @param walletId   идентификатор кошелька
+     * @param categories список категорий для фильтрации (опционально)
+     * @param startDate  начальная дата периода в формате ISO (опционально)
+     * @param endDate    конечная дата периода в формате ISO (опционально)
+     * @return StatisticsResponseDto с полной финансовой статистикой
+     */
+    @GetMapping("/{walletId}/statistics")
+    public StatisticsResponseDto getStatistics(
+            @PathVariable UUID walletId,
+            @RequestParam(required = false) List<String> categories,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate
+    ) {
+        return financeService.getStatistics(walletId, categories, startDate, endDate);
+    }
+
+    /**
+     * Создает детальный финансовый отчет в JSON формате:
+     * - Автоматически скачивает файл после генерации
+     * - Поддерживает фильтрацию по произвольному периоду
+     * - Форматирует данные для удобного анализа
+     *
+     * @param walletId  UUID кошелька для анализа
      * @param startDate начальная дата периода (включительно)
-     * @param endDate конечная дата периода (включительно)
-     * @param filename название файла (без расширения .json)
+     * @param endDate   конечная дата периода (включительно)
+     * @param filename  название файла (без расширения .json)
      * @return ResponseEntity<Resource> JSON файл для скачивания с финансовой статистикой
      */
     @PostMapping("/{walletId}/export/download")
@@ -160,6 +194,7 @@ public class FinanceController {
 
     /**
      * Создает две связанные транзакции: списание у отправителя и зачисление получателю
+     *
      * @param fromUser    логин пользователя-отправителя (обязательный)
      * @param toUser      логин пользователя-получателя (обязательный)
      * @param amount      сумма перевода, должна быть положительной (обязательный)

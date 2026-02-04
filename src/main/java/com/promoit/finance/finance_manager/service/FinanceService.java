@@ -93,6 +93,66 @@ public class FinanceService {
     }
 
     /**
+     * Удаляет транзакцию для указанного кошелька.
+     * @param walletId UUID идентификатор кошелька
+     * @param transactionId UUID идентификатор транзакции
+     */
+    public void deleteTransaction(UUID walletId, UUID transactionId) {
+        WalletEntity wallet = walletRepository.findById(walletId).orElseThrow(
+                () -> new WalletNotFoundException("Кошелек с ID '" + walletId + "' не найден"));
+
+        TransactionEntity transaction = transactionRepository.findByIdAndWallet(transactionId, wallet).orElseThrow(() ->
+                new RuntimeException("Транзакция с ID '" + transactionId + "' не найдена в кошельке " + walletId));
+
+        // Обновить баланс кошелька перед удалением
+        double amount = transaction.getAmount();
+        if (transaction.getType() == TransactionType.INCOME) {
+            wallet.setBalance(wallet.getBalance() - amount); // Отменяем доход
+        } else {
+            wallet.setBalance(wallet.getBalance() + amount); // Возвращаем расход
+        }
+        walletRepository.save(wallet);
+
+        transactionRepository.delete(transaction);
+        log.info("Транзакция {} удалена. Кошелек: {}, тип: {}, сумма: {}", transactionId, walletId, transaction.getType(), transaction.getAmount());
+    }
+
+    /**
+     * Обновляет транзакцию для указанного кошелька.
+     * @param walletId UUID идентификатор кошелька
+     * @param transactionId UUID идентификатор транзакции
+     */
+    public void updateTransaction(UUID walletId, UUID transactionId, TransactionRequestDto request) {
+        WalletEntity wallet = walletRepository.findById(walletId).orElseThrow(
+                () -> new WalletNotFoundException("Кошелек с ID '" + walletId + "' не найден"));
+
+        TransactionEntity transaction = transactionRepository.findByIdAndWallet(transactionId, wallet).orElseThrow(() ->
+                new RuntimeException("Транзакция с ID '" + transactionId + "' не найдена в кошельке " + walletId));
+
+        // Откатить старую транзакцию
+        double oldAmount = transaction.getAmount();
+        if (transaction.getType() == TransactionType.INCOME) {
+            wallet.setBalance(wallet.getBalance() - oldAmount);
+        } else {
+            wallet.setBalance(wallet.getBalance() + oldAmount);
+        }
+        // Применить новую транзакцию
+        double newAmount = request.getAmount();
+        if (request.getType() == TransactionType.INCOME) {
+            wallet.setBalance(wallet.getBalance() + newAmount);
+        } else {
+            wallet.setBalance(wallet.getBalance() - newAmount);
+        }
+        walletRepository.save(wallet);
+
+        transaction.setDescription(request.getDescription());
+        transaction.setType(request.getType());
+        transaction.setAmount(request.getAmount());
+        transaction.setCategory(request.getCategory());
+        transactionRepository.save(transaction);
+    }
+
+    /**
      * Обновляет сумму потраченных средств в бюджете категории и проверяет лимиты.
      * @param wallet   кошелек в котором произошла расходная операция
      * @param category категория расходов для обновления бюджета
