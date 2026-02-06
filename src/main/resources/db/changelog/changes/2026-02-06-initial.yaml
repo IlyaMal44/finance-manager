@@ -1,0 +1,155 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-users-table
+      author: MalanovI
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: username
+                  type: VARCHAR(255)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: password
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 001-create-wallet-table
+      author: MalanovI
+      changes:
+        - createTable:
+            tableName: wallet
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: balance
+                  type: DOUBLE PRECISION
+                  defaultValue: 0.0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    unique: true
+                    nullable: false
+                    foreignKeyName: fk_wallet_user
+                    references: users(id)
+
+  - changeSet:
+      id: 001-create-transaction-table
+      author: MalanovI
+      changes:
+        - createTable:
+            tableName: transaction
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: type
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: amount
+                  type: DOUBLE PRECISION
+                  constraints:
+                    nullable: false
+              - column:
+                  name: category
+                  type: VARCHAR(255)
+              - column:
+                  name: description
+                  type: TEXT
+              - column:
+                  name: date
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: wallet_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_transaction_wallet
+                    references: wallet(id)
+
+  - changeSet:
+      id: 001-create-budget-table
+      author: MalanovI
+      changes:
+        - createTable:
+            tableName: budget
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: category
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: limit_amount
+                  type: DOUBLE PRECISION
+                  constraints:
+                    nullable: false
+              - column:
+                  name: current_spent
+                  type: DOUBLE PRECISION
+                  defaultValue: 0.0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: wallet_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_budget_wallet
+                    references: wallet(id)
+
+  - changeSet:
+      id: 001-add-indexes
+      author: MalanovI
+      changes:
+        - createIndex:
+            indexName: idx_wallet_user_id
+            tableName: wallet
+            columns:
+              - column:
+                  name: user_id
+        - createIndex:
+            indexName: idx_transaction_wallet_id
+            tableName: transaction
+            columns:
+              - column:
+                  name: wallet_id
+        - createIndex:
+            indexName: idx_budget_wallet_id
+            tableName: budget
+            columns:
+              - column:
+                  name: wallet_id

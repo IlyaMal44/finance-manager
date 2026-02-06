@@ -1,24 +1,31 @@
 spring:
   application:
     name: finance-manager
+
   datasource:
-    url: jdbc:h2:mem:financedb
-    driverClassName: org.h2.Driver
-    username: sa
-    password: sa
+    url: jdbc:postgresql://localhost:5432/finance-manager-service
+    username: ilyamal
+    password:
+    hikari:
+      auto-commit: false
+
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: update
-    show-sql: false
+      ddl-auto: none
+    show-sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  liquibase:
+    enabled: true
+
   h2:
-    console:
-      enabled: true
+   console:
+     enabled: false
+
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
       - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
-
 
 server:
   port: 8080
@@ -26,5 +33,6 @@ server:
 logging:
   level:
     com.promoit.finance: INFO
-    org.hibernate: INFO
-    org.hibernate.SQL: DEBUG
+    org.hibernate: WARN
+    org.hibernate.SQL: INFO
+    org.liquibase: INFO

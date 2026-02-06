@@ -15,6 +15,7 @@ import java.util.UUID;
 @Entity
 @Data
 @NoArgsConstructor
+@Table(name = "wallet")
 public class WalletEntity {
     @Id
     @UuidGenerator

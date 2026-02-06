@@ -11,9 +11,9 @@ import java.util.UUID;
  * Данные пользователя.
  */
 @Entity
-@Table(name = "users")
 @Data
 @NoArgsConstructor
+@Table(name = "users")
 public class UserEntity {
     @Id
     @UuidGenerator

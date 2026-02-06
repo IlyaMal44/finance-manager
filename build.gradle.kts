@@ -42,8 +42,14 @@ dependencies {
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
 
+    // liquibase
+    implementation("org.liquibase:liquibase-core")
+
     // h2database
     runtimeOnly("com.h2database:h2:2.3.232")
+
+    // postgresql
+    runtimeOnly("org.postgresql:postgresql")
 
     // junit
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

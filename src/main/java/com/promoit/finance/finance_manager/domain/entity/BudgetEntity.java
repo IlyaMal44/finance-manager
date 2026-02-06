@@ -18,6 +18,7 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "budget")
 public class BudgetEntity {
     @Id
     @UuidGenerator
