@@ -40,7 +40,7 @@ class UserServiceTest {
         UUID walletId = UUID.randomUUID();
         RegisterRequestDto request = new RegisterRequestDto(mail, username, password);
 
-        when(userRepository.findUserAndReturnDtoByMail(username)).thenReturn(Optional.empty());
+        when(userRepository.findUserAndReturnDtoByMail(mail)).thenReturn(Optional.empty());
         when(passwordEncoder.encode(password)).thenReturn("encodedPassword");
         when(userRepository.save(any(UserEntity.class))).thenAnswer(invocation -> {
             UserEntity user = invocation.getArgument(0);
@@ -69,7 +69,7 @@ class UserServiceTest {
         String password = "password";
         RegisterRequestDto request = new RegisterRequestDto(mail, username, password);
 
-        when(userRepository.findUserAndReturnDtoByMail(username)).thenReturn(Optional.of(mock(UserAuthDto.class)));
+        when(userRepository.findUserAndReturnDtoByMail(mail)).thenReturn(Optional.of(mock(UserAuthDto.class)));
 
         assertThrows(MailAlreadyExistsException.class, () -> userService.register(request));
         verify(userRepository, never()).save(any(UserEntity.class));
