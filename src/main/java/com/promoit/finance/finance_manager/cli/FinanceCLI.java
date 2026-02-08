@@ -3,6 +3,7 @@ package com.promoit.finance.finance_manager.cli;
 import com.promoit.finance.finance_manager.domain.dto.statistics.StatisticsResponseDto;
 import com.promoit.finance.finance_manager.domain.dto.transaction.TransactionRequestDto;
 import com.promoit.finance.finance_manager.domain.dto.transaction.TransactionType;
+import com.promoit.finance.finance_manager.domain.dto.user.RegisterRequestDto;
 import com.promoit.finance.finance_manager.domain.dto.user.UserResponseDto;
 import com.promoit.finance.finance_manager.service.ExportService;
 import com.promoit.finance.finance_manager.service.FinanceService;
@@ -10,7 +11,6 @@ import com.promoit.finance.finance_manager.service.NotificationService;
 import com.promoit.finance.finance_manager.service.UserService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.util.Scanner;
 import java.util.UUID;
@@ -103,13 +103,15 @@ public class FinanceCLI implements CommandLineRunner {
 
     private void register() {
         System.out.println("РЕГИСТРАЦИЯ");
+        System.out.print("Адрес электронной почты пользователя: ");
+        String userMail = scanner.nextLine();
         System.out.print("Имя пользователя: ");
-        String username = scanner.nextLine();
+        String userName = scanner.nextLine();
         System.out.print("Пароль: ");
-        String password = scanner.nextLine();
-
+        String userPassword = scanner.nextLine();
+        RegisterRequestDto request = new RegisterRequestDto(userMail, userName, userPassword);
         try {
-            UserResponseDto response = userService.register(username, password);
+            UserResponseDto response = userService.register(request);
             currentUsername = response.getUsername();
             currentWalletId = response.getWalletId();
             System.out.println("Регистрация успешна!");

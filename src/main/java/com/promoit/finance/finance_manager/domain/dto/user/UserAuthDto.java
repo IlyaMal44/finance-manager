@@ -23,6 +23,11 @@ public class UserAuthDto {
     private String username;
 
     /**
+     * Почта пользователя
+     */
+    private String mail;
+
+    /**
      * Зашифрованный пароль
      */
     private String password;

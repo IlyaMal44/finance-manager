@@ -1,10 +1,11 @@
 package com.promoit.finance.finance_manager.service;
 
 import com.promoit.finance.finance_manager.domain.dto.user.UserAuthDto;
+import com.promoit.finance.finance_manager.domain.dto.user.RegisterRequestDto;
 import com.promoit.finance.finance_manager.domain.dto.user.UserResponseDto;
 import com.promoit.finance.finance_manager.domain.entity.UserEntity;
 import com.promoit.finance.finance_manager.domain.entity.WalletEntity;
-import com.promoit.finance.finance_manager.domain.exception.user.UserAlreadyExistsException;
+import com.promoit.finance.finance_manager.domain.exception.user.MailAlreadyExistsException;
 import com.promoit.finance.finance_manager.domain.exception.user.UserNotFoundException;
 import com.promoit.finance.finance_manager.domain.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -34,10 +35,12 @@ class UserServiceTest {
     void register_Success() {
         String username = "testuser";
         String password = "password";
+        String mail = "existinguser@mail.ru";
         UUID userId = UUID.randomUUID();
         UUID walletId = UUID.randomUUID();
+        RegisterRequestDto request = new RegisterRequestDto(mail, username, password);
 
-        when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
+        when(userRepository.findUserAndReturnDtoByMail(username)).thenReturn(Optional.empty());
         when(passwordEncoder.encode(password)).thenReturn("encodedPassword");
         when(userRepository.save(any(UserEntity.class))).thenAnswer(invocation -> {
             UserEntity user = invocation.getArgument(0);
@@ -49,7 +52,7 @@ class UserServiceTest {
             return user;
         });
 
-        UserResponseDto result = userService.register(username, password);
+        UserResponseDto result = userService.register(request);
 
         assertNotNull(result);
         assertEquals(userId, result.getId());
@@ -62,11 +65,13 @@ class UserServiceTest {
     @DisplayName("Регистрация с существующим именем пользователя вызывает исключение")
     void register_UserAlreadyExists_ThrowsException() {
         String username = "existinguser";
+        String mail = "existinguser@mail.ru";
         String password = "password";
+        RegisterRequestDto request = new RegisterRequestDto(mail, username, password);
 
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(mock(UserAuthDto.class)));
+        when(userRepository.findUserAndReturnDtoByMail(username)).thenReturn(Optional.of(mock(UserAuthDto.class)));
 
-        assertThrows(UserAlreadyExistsException.class, () -> userService.register(username, password));
+        assertThrows(MailAlreadyExistsException.class, () -> userService.register(request));
         verify(userRepository, never()).save(any(UserEntity.class));
     }
 
@@ -76,7 +81,7 @@ class UserServiceTest {
         String username = "nonexistent";
         String password = "password";
 
-        when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
+        when(userRepository.findUserAndReturnDtoByMail(username)).thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class, () -> userService.authenticate(username, password));
     }
@@ -86,11 +91,12 @@ class UserServiceTest {
     void authenticate_Success() {
         String username = "testuser";
         String password = "password";
+        String mail = "existinguser@mail.ru";
         UUID userId = UUID.randomUUID();
 
-        UserAuthDto userAuthDto = new UserAuthDto(userId, username, "encodedPassword", new WalletEntity());
+        UserAuthDto userAuthDto = new UserAuthDto(userId, username, mail,"encodedPassword", new WalletEntity());
 
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(userAuthDto));
+        when(userRepository.findUserAndReturnDtoByMail(username)).thenReturn(Optional.of(userAuthDto));
         when(passwordEncoder.matches(password, "encodedPassword")).thenReturn(true);
 
         UserResponseDto result = userService.authenticate(username, password);

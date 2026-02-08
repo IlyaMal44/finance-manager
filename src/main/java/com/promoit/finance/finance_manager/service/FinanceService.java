@@ -430,10 +430,10 @@ public class FinanceService {
      * @param description описание операции
      */
     public void transfer(String fromUsername, String toUsername, Double amount, String description) {
-        UserAuthDto fromUser = userRepository.findByUsername(fromUsername).orElseThrow(
+        UserAuthDto fromUser = userRepository.findUserAndReturnDtoByMail(fromUsername).orElseThrow(
                 () -> new UserNotFoundException("Sender with name " + fromUsername + " not found")
         );
-        UserAuthDto toUser = userRepository.findByUsername(toUsername).orElseThrow(
+        UserAuthDto toUser = userRepository.findUserAndReturnDtoByMail(toUsername).orElseThrow(
                 () -> new UserNotFoundException("Recipient with name " + toUsername + " not found")
         );
 

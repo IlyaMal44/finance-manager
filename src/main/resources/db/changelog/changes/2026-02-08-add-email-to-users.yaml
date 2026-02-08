@@ -1,0 +1,48 @@
+databaseChangeLog:
+  # Шаг 1: Добавляем колонку как nullable
+  - changeSet:
+      id: 002-add-email-to-users-step1
+      author: MalanovI
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: mail
+                  type: VARCHAR(255)
+                  constraints:
+                    unique: true
+                    nullable: true
+
+  # Шаг 2: Заполняем данными
+  - changeSet:
+      id: 002-add-email-to-users-step2
+      author: MalanovI
+      changes:
+        - sql:
+            sql: |
+              UPDATE users 
+              SET mail = username || '@temp.example.com'
+              WHERE mail IS NULL;
+
+  # Шаг 3: Делаем NOT NULL
+  - changeSet:
+      id: 002-add-email-to-users-step3
+      author: MalanovI
+      changes:
+        - addNotNullConstraint:
+            tableName: users
+            columnName: mail
+            columnDataType: VARCHAR(255)
+
+  # Шаг 4: Добавляем индекс
+  - changeSet:
+      id: 002-add-email-to-users-step4
+      author: MalanovI
+      changes:
+        - createIndex:
+            indexName: idx_users_mail
+            tableName: users
+            columns:
+              - column:
+                  name: mail

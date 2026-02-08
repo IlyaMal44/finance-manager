@@ -21,6 +21,11 @@ public class UserResponseDto {
     private String username;
 
     /**
+     * Почта пользователя
+     */
+    private String mail;
+
+    /**
      * Идентификатор кошелька пользователя
      */
     private UUID walletId;

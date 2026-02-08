@@ -1,22 +1,24 @@
 package com.promoit.finance.finance_manager.domain.dto.user;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
- * DTO для запроса регистрации/логина пользователя
+ * DTO для запроса регистрации пользователя
  */
 @Data
 @AllArgsConstructor
-public class UserRequestDto {
+public class LoginRequestDto {
+
     /**
-     * Имя пользователя для входа в систему
+     * Адрес электронной почты пользователя
      */
-    @NotBlank(message = "Имя пользователя обязательно для заполнения")
-    @Size(min = 3, max = 50, message = "Имя пользователя должно быть от 3 до 50 символов")
-    private String username;
+    @NotBlank(message = "Адрес электронной почты обязательно для заполнения")
+    @Email
+    private String mail;
 
     /**
      * Пароль пользователя
