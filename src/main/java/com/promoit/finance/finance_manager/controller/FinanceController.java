@@ -8,6 +8,7 @@ import com.promoit.finance.finance_manager.domain.dto.transaction.TransactionRes
 import com.promoit.finance.finance_manager.service.ExportService;
 import com.promoit.finance.finance_manager.service.FinanceService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.swing.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -26,14 +28,10 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/finance")
+@RequiredArgsConstructor
 public class FinanceController {
     private final FinanceService financeService;
     private final ExportService exportService;
-
-    public FinanceController(FinanceService financeService, ExportService exportService) {
-        this.financeService = financeService;
-        this.exportService = exportService;
-    }
 
     /**
      * Устанавливает или обновляет бюджетное ограничение для ОДНОЙ категории расходов.

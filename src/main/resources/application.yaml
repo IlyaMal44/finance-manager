@@ -19,13 +19,32 @@ spring:
     enabled: true
 
   h2:
-   console:
-     enabled: false
+    console:
+      enabled: false
 
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
       - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: finance.manager.app.sup@gmail.com
+    password:
+    protocol: smtp
+    properties:
+      mail:
+        debug: false
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+app:
+  frontendBaseUrl: "https://miafin.sytes.net"
+  mailFrom: "Finance Manager <finance.manager.app.sup@gmail.com>"
 
 server:
   port: 8080
@@ -36,3 +55,5 @@ logging:
     org.hibernate: WARN
     org.hibernate.SQL: INFO
     org.liquibase: INFO
+    org.springframework.web.cors: WARN
+    org.springframework.web.filter.CorsFilter: WARN
