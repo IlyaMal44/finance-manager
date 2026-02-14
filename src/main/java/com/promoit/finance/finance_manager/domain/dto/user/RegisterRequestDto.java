@@ -24,7 +24,7 @@ public class RegisterRequestDto {
      * Имя пользователя для входа в систему
      */
     @NotBlank(message = "Имя пользователя обязательно для заполнения")
-    @Size(min = 3, max = 50, message = "Имя пользователя должно быть от 3 до 50 символов")
+    @Size(min = 2, max = 50, message = "Имя пользователя должно быть от 3 до 50 символов")
     private String username;
 
     /**
