@@ -3,9 +3,9 @@ spring:
     name: finance-manager
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/finance-manager-service
-    username: ilyamal
-    password:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     hikari:
       auto-commit: false
 
@@ -30,8 +30,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: finance.manager.app.sup@gmail.com
-    password:
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     protocol: smtp
     properties:
       mail:
@@ -43,7 +43,7 @@ spring:
             required: true
 
 app:
-  frontendBaseUrl: "https://miafin.sytes.net"
+  frontendBaseUrl: "https://finasage.com"
   mailFrom: "Finance Manager <finance.manager.app.sup@gmail.com>"
 
 server:
